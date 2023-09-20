@@ -1,0 +1,63 @@
+## Default values for Kafka and Pod Monitor.
+## This is a YAML-formatted file.
+
+kafka:
+  namespace: kafka
+  name: systems-kafka-cluster
+  version: 3.4.0
+  replicas: 3
+  readinessProbe:
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+  livenessProbe:
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+  config:
+    offsetsTopicReplicationFactor: 3
+    transactionStateLogReplicationFactor: 3
+    transactionStateLogMinIsr: 2
+    defaultReplicationFactor: 3
+    minInsyncReplicas: 2
+    interBrokerProtocolVersion: 3.4
+  storage:
+    size: 1Gi
+
+zookeeper:
+  replicas: 3
+  readinessProbe:
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+  livenessProbe:
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+  storage:
+    size: 1Gi
+
+configMap:
+  name: kafka-metrics
+
+kafkaUser:
+  name: systems-kafka-user
+  authenticationType: scram-sha-512
+
+podMonitor:
+  namespace: monitoring
+  labels:
+      app: strimzi
+  clusterOperatorMetrics:
+    name: cluster-operator-metrics
+    selector:
+      matchLabels:
+        strimzi.io/kind: cluster-operator
+  entityOperatorMetrics:
+    name: entity-operator-metrics
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: entity-operator
+  kafkaResourcesMetrics:
+    name: kafka-resources-metrics
+    selector:
+      matchExpressions:
+        - key: "strimzi.io/kind"
+          operator: In
+          values: ["Kafka", "KafkaConnect"]
